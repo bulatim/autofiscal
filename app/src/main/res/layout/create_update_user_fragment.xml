@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="bulat.ru.autofiscalization.ui.user.CreateUpdateUserViewModel" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/lastName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:ems="10"
+                android:hint="Фамилия"
+                android:textAlignment="center"
+                app:met_floatingLabel="normal"
+                app:met_floatingLabelText="Фамилия"
+                app:mutableText="@{viewModel.getLastNameText()}" />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/firstName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lastName"
+                android:layout_marginBottom="16dp"
+                android:ems="10"
+                android:hint="Имя"
+                android:textAlignment="center"
+                app:met_floatingLabel="normal"
+                app:met_floatingLabelText="Имя"
+                app:mutableText="@{viewModel.getFirstNameText()}" />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/middleName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/firstName"
+                android:layout_marginBottom="16dp"
+                android:ems="10"
+                android:hint="Отчество"
+                android:textAlignment="center"
+                app:met_floatingLabel="normal"
+                app:met_floatingLabelText="Отчество"
+                app:mutableText="@{viewModel.getMiddleNameText()}" />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/position"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/middleName"
+                android:layout_marginBottom="16dp"
+                android:ems="10"
+                android:hint="Должность"
+                android:textAlignment="center"
+                app:met_floatingLabel="normal"
+                app:met_floatingLabelText="Должность"
+                app:mutableText="@{viewModel.getPositionText()}" />
+        </RelativeLayout>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+    </LinearLayout>
+</layout>
