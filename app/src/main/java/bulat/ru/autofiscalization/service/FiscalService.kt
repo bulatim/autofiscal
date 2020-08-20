@@ -5,12 +5,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import bulat.ru.autofiscalization.App
 import bulat.ru.autofiscalization.BuildConfig
-import bulat.ru.autofiscalization.di.component.DaggerAppComponent
-import bulat.ru.autofiscalization.di.module.ServiceModule
 import bulat.ru.autofiscalization.exchange.ExchangeFileFactory
+import bulat.ru.autofiscalization.exchange.base.IExchangeFileProvider
 import bulat.ru.autofiscalization.model.cashbox.request.*
 import bulat.ru.autofiscalization.model.entities.Fiscal
 import bulat.ru.autofiscalization.model.entities.User
@@ -49,6 +47,7 @@ class FiscalService : Service(), CoroutineScope {
     private var isProcessExchange = false
     private var timer: Timer? = null
     private val intent = Intent().apply { action = SERVICE_STATUS_BROADCAST_RECEIVER }
+    private lateinit var exchangeFileProvider: IExchangeFileProvider
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
@@ -65,37 +64,46 @@ class FiscalService : Service(), CoroutineScope {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("myLog", "onStartCommand")
-        timer?.cancel()
-        timer = Timer()
-        if (provideExchangePeriod.get() == null) {
-            val exchangePeriod = sharedPreferences.getString("exchange_period", "600")
-            try {
-                if (exchangePeriod != null)
-                    provideExchangePeriod.set(exchangePeriod.toInt())
-            } catch (e: Exception) {
-                provideExchangePeriod.set(600)
+        exchangeFileFactory.type =
+            if (BuildConfig.DEBUG)
+                ExchangeFileFactory.ExchangeFileType.TEST
+            else
+                ExchangeFileFactory.ExchangeFileType.FTP
+        try {
+            exchangeFileProvider = exchangeFileFactory.createExchangeFileProvider()
+            timer?.cancel()
+            timer = Timer()
+            if (provideExchangePeriod.get() == null) {
+                val exchangePeriod = sharedPreferences.getString("exchange_period", "600")
+                try {
+                    if (exchangePeriod != null)
+                        provideExchangePeriod.set(exchangePeriod.toInt())
+                } catch (e: Exception) {
+                    provideExchangePeriod.set(600)
+                }
             }
-        }
-        Log.d("myLog", "exchangePeriod: ${provideExchangePeriod.get()}")
-        timer!!.schedule(object : TimerTask() {
-            override fun run() {
-                if (userProvider.get() == null) {
-                    launch {
-                        val currentCashierId = sharedPreferences.getLong("currentCashierId", 0)
-                        val user =
-                            if (currentCashierId == 0L) userRepository.getFirstUser().await() else userRepository.getById(
-                                currentCashierId
-                            ).await()
-                        user?.let {
-                            userProvider.set(user)
-                            startExchange()
+            timer!!.schedule(object : TimerTask() {
+                override fun run() {
+                    if (userProvider.get() == null) {
+                        launch {
+                            val currentCashierId = sharedPreferences.getLong("currentCashierId", 0)
+                            val user =
+                                if (currentCashierId == 0L) userRepository.getFirstUser().await() else userRepository.getById(
+                                    currentCashierId
+                                ).await()
+                            user?.let {
+                                userProvider.set(user)
+                                startExchange()
+                            }
                         }
-                    }
-                } else
-                    startExchange()
-            }
-        }, 0, provideExchangePeriod.get()!! * 1000L)
+                    } else
+                        startExchange()
+                }
+            }, 0, provideExchangePeriod.get()!! * 1000L)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            stopSelf()
+        }
         return START_STICKY
     }
 
@@ -106,12 +114,7 @@ class FiscalService : Service(), CoroutineScope {
     private fun startExchange() {
         if (!isProcessExchange) {
             isProcessExchange = true
-            exchangeFileFactory.type =
-                if (BuildConfig.DEBUG)
-                    ExchangeFileFactory.ExchangeFileType.TEST
-                else
-                    ExchangeFileFactory.ExchangeFileType.FTP
-            exchangeFileFactory.createExchangeFile().getExchangeFile()?.let {
+            exchangeFileProvider.getExchangeFile()?.let {
                 parseFile(it)
                 launch {
                     val notFiscalDocuments = fiscalRepository.getNotFiscalized().await()
@@ -191,12 +194,10 @@ class FiscalService : Service(), CoroutineScope {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("myLog", "onDestroy")
         launch {
             while (isProcessExchange)
                 delay(100)
             timer?.cancel()
-            Log.d("myLog", "timer canceled")
             changeStatus(false)
         }
     }

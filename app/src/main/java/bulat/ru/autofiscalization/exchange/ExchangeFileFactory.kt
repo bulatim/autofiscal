@@ -1,19 +1,27 @@
 package bulat.ru.autofiscalization.exchange
 
 import android.content.Context
-import bulat.ru.autofiscalization.exchange.base.IExchangeFile
+import android.content.SharedPreferences
+import bulat.ru.autofiscalization.exchange.base.IExchangeFileProvider
 import javax.inject.Inject
 
-class ExchangeFileFactory @Inject constructor(val mContext: Context) {
+class ExchangeFileFactory @Inject constructor(private val mContext: Context,
+                                              private val sharedPreferences: SharedPreferences) {
     var type = ExchangeFileType.TEST
 
-    fun createExchangeFile(): IExchangeFile {
+    fun createExchangeFileProvider(): IExchangeFileProvider {
         return when (type) {
             ExchangeFileType.TEST ->
-                TestExchangeFile().apply {
+                TestExchangeFileProvider().apply {
                     this.context = mContext
                 }
-            else -> FtpExchangeFile()
+            else -> FtpExchangeFileProvider().apply {
+                hostname = sharedPreferences.getString("hostname", "") ?: ""
+                username = sharedPreferences.getString("username", "") ?: ""
+                password = sharedPreferences.getString("password", "") ?: ""
+                if (hostname == "")
+                    throw Throwable("Не указан адрес FTP")
+            }
         }
     }
 

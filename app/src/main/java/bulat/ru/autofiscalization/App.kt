@@ -30,8 +30,8 @@ class App : MultiDexApplication(), CoroutineScope {
         component = DaggerAppComponent.builder()
             .contextModule(contextModule)
             .build()
-        if (component.provideSharedPreferences().getBoolean("exchange_status", false))
-            startService()
+        /*if (component.provideSharedPreferences().getBoolean("exchange_status", false))
+            startService()*/
         serviceStatusBroadcastReceiver = ServiceStatusBroadcastReceiver {
             bound = it
         }

@@ -2,12 +2,12 @@ package bulat.ru.autofiscalization.exchange
 
 import android.content.Context
 import bulat.ru.autofiscalization.R
-import bulat.ru.autofiscalization.exchange.base.IExchangeFile
+import bulat.ru.autofiscalization.exchange.base.IExchangeFileProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class TestExchangeFile: IExchangeFile {
+class TestExchangeFileProvider: IExchangeFileProvider {
     lateinit var context: Context
 
     override fun getExchangeFile(): File? {

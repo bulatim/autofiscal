@@ -1,18 +1,19 @@
 package bulat.ru.autofiscalization.exchange
 
-import bulat.ru.autofiscalization.exchange.base.IExchangeFile
+import bulat.ru.autofiscalization.exchange.base.IExchangeFileProvider
 import org.apache.commons.net.ftp.FTPClient
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
-class FtpExchangeFile: IExchangeFile {
+class FtpExchangeFileProvider: IExchangeFileProvider {
+    lateinit var hostname: String
+    lateinit var username: String
+    lateinit var password: String
+
     override fun getExchangeFile(): File? {
         val ftpClient = FTPClient()
-        val hostname = ""
         ftpClient.connect(hostname)
-        val username = ""
-        val password = ""
         ftpClient.login(username, password)
         ftpClient.enterLocalPassiveMode()
         if (ftpClient.listNames().isNotEmpty()) {

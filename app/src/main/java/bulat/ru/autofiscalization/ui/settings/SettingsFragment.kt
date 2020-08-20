@@ -41,7 +41,7 @@ class SettingsFragment : PreferenceFragmentCompat(),
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-        when (key) {
+        when (key) {/*
             "exchange_status" -> {
                 activity?.let { fragmentActivity ->
                     val isExchange = sharedPreferences.getBoolean(key, false)
@@ -58,7 +58,7 @@ class SettingsFragment : PreferenceFragmentCompat(),
                         setPreferencesFromResource(R.xml.preferences, null)
                     }
                 }
-            }
+            }*/
             "exchange_period" -> {
                 val exchangePeriod = sharedPreferences.getString(key, "600")
                 try {

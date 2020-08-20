@@ -2,6 +2,6 @@ package bulat.ru.autofiscalization.exchange.base
 
 import java.io.File
 
-interface IExchangeFile {
+interface IExchangeFileProvider {
     fun getExchangeFile(): File?
 }
