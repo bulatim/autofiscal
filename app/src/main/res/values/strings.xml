@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AutoFiscalization</string>
+    <string name="app_name">Автоматическая фискализация</string>
     <string name="main">Главная</string>
     <string name="users">Пользователи</string>
     <string name="settings">Настройки</string>

@@ -1,12 +1,16 @@
 package bulat.ru.autofiscalization.service
 
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Binder
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
 import bulat.ru.autofiscalization.App
 import bulat.ru.autofiscalization.BuildConfig
+import bulat.ru.autofiscalization.R
 import bulat.ru.autofiscalization.exchange.ExchangeFileFactory
 import bulat.ru.autofiscalization.exchange.base.IExchangeFileProvider
 import bulat.ru.autofiscalization.model.cashbox.request.*
@@ -16,6 +20,7 @@ import bulat.ru.autofiscalization.model.repository.CashboxRepository
 import bulat.ru.autofiscalization.model.repository.FiscalRepository
 import bulat.ru.autofiscalization.model.repository.UserRepository
 import bulat.ru.autofiscalization.providers.InstanceProvider
+import bulat.ru.autofiscalization.ui.MainActivity
 import bulat.ru.autofiscalization.utils.SERVICE_STATUS_BROADCAST_RECEIVER
 import bulat.ru.autofiscalization.utils.ddMMyyySimpleDateFormat
 import kotlinx.coroutines.*
@@ -48,6 +53,10 @@ class FiscalService : Service(), CoroutineScope {
     private var timer: Timer? = null
     private val intent = Intent().apply { action = SERVICE_STATUS_BROADCAST_RECEIVER }
     private lateinit var exchangeFileProvider: IExchangeFileProvider
+    private val NOTIFY_ID = 1
+    private val notificationManager: NotificationManager by lazy {
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+    }
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
@@ -104,6 +113,25 @@ class FiscalService : Service(), CoroutineScope {
             e.printStackTrace()
             stopSelf()
         }
+
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val contentIntent = PendingIntent.getActivity(
+            this,
+            0,
+            notificationIntent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+
+        val notificationBuilder =
+            NotificationCompat.Builder(this, "channel")
+                .setOngoing(true)
+                .setContentTitle(getString(R.string.app_name))
+                .setSmallIcon(R.drawable.ic_loop_black_24dp)
+                .setContentText("Обмен с сервером активен")
+                .setContentIntent(contentIntent)
+
+        val notification = notificationBuilder.build()
+        notificationManager.notify(NOTIFY_ID, notification)
         return START_STICKY
     }
 
@@ -198,6 +226,7 @@ class FiscalService : Service(), CoroutineScope {
             while (isProcessExchange)
                 delay(100)
             timer?.cancel()
+            notificationManager.cancel(NOTIFY_ID)
             changeStatus(false)
         }
     }

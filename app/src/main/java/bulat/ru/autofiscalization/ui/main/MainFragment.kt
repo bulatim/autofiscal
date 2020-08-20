@@ -45,6 +45,7 @@ class MainFragment : BaseFragment() {
         activity?.let { fragmentActivity ->
             service_status.text =
                 if ((fragmentActivity.application as App).bound) "Сервис запущен" else "Сервис не запущен"
+            service_status.isChecked = (fragmentActivity.application as App).bound
         }
         serviceStatusBroadcastReceiver = ServiceStatusBroadcastReceiver {
             service_status.text = if (it) "Сервис запущен" else "Сервис не запущен"
@@ -59,9 +60,10 @@ class MainFragment : BaseFragment() {
                 return@setOnCheckedChangeListener
             }
             if (userProvider.get() != null) {
-                if (isExchange)
-                    (requireActivity().application as App).startService()
-                else {
+                if (isExchange) {
+                    if (!(requireActivity().application as App).bound)
+                        (requireActivity().application as App).startService()
+                } else {
                     if ((requireActivity().application as App).bound) {
                         showToast("Пожалуйста подождите")
                         (requireActivity().application as App).stopService()
